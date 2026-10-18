@@ -1,0 +1,58 @@
+name: Update public grocery catalog
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 4 * * *"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: grocery-catalog-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-go@v6
+        with:
+          go-version: "1.26.x"
+          cache: false
+
+      - name: Install grocery-cli
+        run: go install github.com/jgalea/grocery-cli/cmd/grocery@latest
+
+      - name: Build normalized catalog
+        run: |
+          python3 tooling/catalog/build_catalog.py \
+            --grocery "$(go env GOPATH)/bin/grocery" \
+            --queries catalog/queries-es.txt \
+            --output site/catalog/latest.json
+
+      - name: Add Pages landing metadata
+        run: |
+          printf '%s\n' '<!doctype html><meta charset="utf-8"><title>Weekplate catalog</title><p>Static grocery catalog for Weekplate.</p>' > site/index.html
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
