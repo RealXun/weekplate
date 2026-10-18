@@ -1,0 +1,27 @@
+# Third-party reference binaries and extracted/decompiled material.
+# These files are evidence only and must never be redistributed with the replica.
+reference-private/
+analysis-private/
+tooling/node_modules/
+tooling/*.tgz
+tooling/downloads/
+tooling/jdk-*/
+tooling/jadx-*.jar
+tooling/tmp/
+tooling/android-sdk/
+tooling/android-avd/
+tooling/android-user/
+tooling/gradle-*/
+tooling/.gradle-home/
+
+# Android build outputs and machine-local configuration.
+.gradle/
+.kotlin/
+**/build/
+dist/
+site/
+*.apk
+local.properties
+.idea/
+*.iml
+
